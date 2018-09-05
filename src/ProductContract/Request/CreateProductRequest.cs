@@ -1,6 +1,4 @@
-﻿using Product.Api.Contract.Models;
-
-namespace Product.Api.Contract.Request
+﻿namespace Product.Api.Contract.Request
 {
     public class CreateProductRequest
     {

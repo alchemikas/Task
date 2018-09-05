@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Product.Api.Contract.Request;
@@ -14,10 +14,14 @@ namespace Product.Api.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IQueryDispatcher _queryDispatcher;
+        private readonly ICommandDispacher _commandDispacher;
 
-        public ProductController(IQueryDispatcher queryDispatcher)
+        public ProductController(
+            IQueryDispatcher queryDispatcher,
+            ICommandDispacher commandDispacher)
         {
             _queryDispatcher = queryDispatcher;
+            _commandDispacher = commandDispacher;
         }
         
         [HttpGet]
@@ -38,21 +42,40 @@ namespace Product.Api.Controllers
 
         
         [HttpPost]
-        public void Post([FromBody] CreateProductRequest value)
+        public async Task<HttpResponseMessage> Post([FromBody] CreateProductRequest createProductRequest)
         {
+            await _commandDispacher.Execute(createProductRequest).ConfigureAwait(false);
 
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        // PUT api/values/5
+        
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<HttpResponseMessage> Put(int id, [FromBody] UpdateProductRequest updateProductRequest)
         {
+            updateProductRequest.Product.Id = id;
+            await _commandDispacher.Execute(updateProductRequest).ConfigureAwait(false);
+
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
         
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<HttpResponseMessage> Delete(int id)
         {
+            var deleteRequest = new DeleteProductRequest(){ ProductId = id};
+            await _commandDispacher.Execute(deleteRequest).ConfigureAwait(false);
+
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        [HttpGet("/export")]
+        public async Task<HttpResponseMessage> Export()
+        {
+//            var deleteRequest = new DeleteProductRequest() { ProductId = id };
+//            await _commandDispacher.Execute(deleteRequest).ConfigureAwait(false);
+
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
     }
 }
