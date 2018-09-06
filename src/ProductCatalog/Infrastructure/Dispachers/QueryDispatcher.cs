@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Product.Api.Handlers;
 using Microsoft.Extensions.DependencyInjection;
+using Product.Api.DomainCore.Handlers.Query;
 
-namespace Product.Api.Infrastructure
+namespace Product.Api.Infrastructure.Dispachers
 {
     public interface IQueryDispatcher
     {

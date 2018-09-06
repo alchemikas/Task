@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Product.Api.Handlers.Command;
+using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 
-namespace Product.Api.Handlers
+namespace Product.Api.Infrastructure.Dispachers
 {
 
     public interface ICommandDispacher
