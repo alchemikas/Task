@@ -10,7 +10,7 @@ namespace Product.Api.DomainCore.Handlers.Command.BaseCommand
     // Todo wrap Execute into transaction if more complex operration will be apllyed
     public abstract class BaseCommandHandler<TCommand> : ICommandHander<TCommand>
     {
-        private List<Fault> _faults;
+        protected List<Fault> _faults;
         protected BaseCommandHandler()
         {
             _faults = new List<Fault>();

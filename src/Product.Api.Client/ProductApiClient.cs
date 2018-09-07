@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -50,8 +51,10 @@ namespace Product.Api.Client
         public async Task<Response> Create(Contract.CreateProduct product)
         {
             HttpClient httpClient = GetHttpClient();
+
             HttpContent content = new StringContent(JsonConvert.SerializeObject(product));
             content.Headers.ContentType.MediaType = "application/json";
+
             HttpResponseMessage response = await httpClient.PostAsync($"api/product", content);
             if (response.IsSuccessStatusCode)
             {
@@ -61,21 +64,50 @@ namespace Product.Api.Client
         }
     
 
-        public async Task Update(Contract.CreateProduct product)
+        public async Task<Response> Update(Contract.CreateProduct product, int id)
         {
             HttpClient httpClient = GetHttpClient();
-            httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            
             HttpContent content = new StringContent(JsonConvert.SerializeObject(product));
-            HttpResponseMessage response = await httpClient.PutAsync($"api/product", content);
-//            return await HandleResponse<Response>(response, $"Failed to create resource");
+            content.Headers.ContentType.MediaType = "application/json";
+
+            HttpResponseMessage response = await httpClient.PutAsync($"api/product/{id}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return new Response();
+            }
+            return await HandleResponse<Response>(response, $"Failed to create resource");
         }
 
-        public void Export()
+        public async Task<FileExport> Export()
         {
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.ms-excel."));
-//            return await HandleResponse<Response>(response, $"Failed to create resource");
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/product");
+            if (response.IsSuccessStatusCode)
+            {
+                return new FileExport
+                {
+                    Bytes = await response.Content.ReadAsByteArrayAsync(),
+                    FileName = response.Content.Headers.ContentDisposition.FileNameStar,
+                    ContentType = response.Content.Headers.ContentType.MediaType
+                };
+            }
+            throw new Exception("Failed to download file.");
         }
+
+        public async Task<bool> IsCodeUnique(string code)
+        {
+            HttpClient httpClient = GetHttpClient();
+            var requestMessage= new HttpRequestMessage(HttpMethod.Head, $"api/product/code/{code}");
+            HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
+
+            if (response.StatusCode == HttpStatusCode.OK) return false;
+            if (response.StatusCode == HttpStatusCode.NotFound) return true;
+
+            throw new Exception("Failed to check code unique.");
+        }
+
 
         private HttpClient GetHttpClient()
         {

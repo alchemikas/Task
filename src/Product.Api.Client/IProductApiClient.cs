@@ -10,8 +10,8 @@ namespace Product.Api.Client
         Task<GetProductDetailsResponse> Get(int id);
         Task Delete(int id);
         Task<Response> Create(Contract.CreateProduct product);
-        Task Update(Contract.CreateProduct product);
-        void Export();
-
+        Task<Response> Update(Contract.CreateProduct product, int id);
+        Task<FileExport> Export();
+        Task<bool> IsCodeUnique(string code);
     }
 }

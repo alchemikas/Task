@@ -25,17 +25,24 @@ namespace ProductUI.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm = null)
         {
-            GetProductsResponse response = await _productApiClient.GetAll(string.Empty);
+            GetProductsResponse response = await _productApiClient.GetAll(searchTerm);
             List<ProductViewModel> viewModel = _mapper.Map<List<ProductViewModel>>(response.Products);
 
             return View(viewModel);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExportFile()
+        {
+            FileExport file = await _productApiClient.Export();
+            return  File(file.Bytes, file.ContentType, file.FileName);
+        }
+
         public IActionResult Create()
         {
-            return View("Create");
+            return View("Create", new ProductEditModel());
         }
 
         [HttpPost]
@@ -43,13 +50,21 @@ namespace ProductUI.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!await IsCodeUnique(product))
+                {
+                    ModelState.AddModelError("code", "Code is not unique.");
+                    return View(product);
+                }
+
                 CreateProduct apiModel = _mapper.Map<CreateProduct>(product);
                 if (product.Image != null)
                 {
                     MapImageFile(product.Image, apiModel.Photo);
                 }
 
-                Response response = await _productApiClient.Create(apiModel);
+                Response response = product.Id == default(int)?
+                      await _productApiClient.Create(apiModel) 
+                    : await _productApiClient.Update(apiModel, product.Id);
 
                 if (response.Errors != null && response.Errors.Any())
                 {
@@ -95,6 +110,22 @@ namespace ProductUI.Controllers
                 var fileBytes = ms.ToArray();
                 imageFile.Content = Convert.ToBase64String(fileBytes);
             }
+        }
+
+        private async Task<bool> IsCodeUnique(ProductEditModel product)
+        {
+            bool isEditAction = product.Id != default(int);
+            if (isEditAction)
+            {
+                bool doesCodeWasChanged = product.Code != product.CodeBeforeEdit;
+                if (doesCodeWasChanged)
+                {
+                    return await _productApiClient.IsCodeUnique(product.Code);
+                }
+                return true;
+            }
+
+            return await _productApiClient.IsCodeUnique(product.Code);
         }
     }
 }

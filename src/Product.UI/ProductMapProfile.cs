@@ -39,6 +39,7 @@ namespace ProductUI
             CreateMap<ViewProduct, ProductEditModel>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.CodeBeforeEdit, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
                 .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Photo.Content))

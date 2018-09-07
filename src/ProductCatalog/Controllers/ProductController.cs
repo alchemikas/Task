@@ -39,7 +39,7 @@ namespace Product.Api.Controllers
             _fileValidationService = fileValidationService;
         }
 
-        [HttpGet]
+        [HttpGet("")]
         [Consumes("application/json", "application/vnd.ms-excel.")]
         public async Task<IActionResult> Get([FromQuery] string searchTerm)
         {
@@ -67,7 +67,19 @@ namespace Product.Api.Controllers
             return Ok(response);
         }
 
-        
+        [HttpHead("code/{code}")]
+        public async Task<IActionResult> GetByCode(string code)
+        {
+            var query = new GetProductQuery { Code = code };
+            var response = await _queryDispatcher.Execute<GetProductQuery, GetProductDetailsResponse>(query).ConfigureAwait(false);
+            if (response.Product != null)
+            {
+                return Ok();
+            }
+            return NotFound();
+        }
+
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Contract.CreateProduct product)
         {

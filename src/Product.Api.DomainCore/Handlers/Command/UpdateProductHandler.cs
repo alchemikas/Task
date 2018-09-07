@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
 using Product.Api.DomainCore.Handlers.Command.BaseCommand;
+using Product.Api.DomainCore.Models;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
 
@@ -26,13 +28,21 @@ namespace Product.Api.DomainCore.Handlers.Command
             Models.Product product = await _productRepository.GetProduct(command.Product.Id).ConfigureAwait(false);
             if (product == null) throw new NotFoundException(new List<Fault>{new Fault{Reason = "ResourceNotFound", Message = "Resource not found."}});
 
+            if (product.Code != command.Product.Code)
+            {
+                await _productValidationService.ValidateProductCode(_faults, command.Product.Code);
+                if (_faults.Any()) throw new ValidationException(_faults);
+            }
+
             product.LastUpdated = DateTime.Now;
-            product.Code = command.Product.Code;
             product.Name = command.Product.Name;
+            product.Code = command.Product.Code;
             product.Price = command.Product.Price;
 
             if (command.Product.Image != null)
             {
+                if(product.Image == null) product.Image = new File();
+
                 product.Image.Content = command.Product.Image.Content;
                 product.Image.ContentType = command.Product.Image.ContentType;
                 product.Image.Title = command.Product.Image.Title;
@@ -46,7 +56,7 @@ namespace Product.Api.DomainCore.Handlers.Command
         {
             _productValidationService.ValidateProductName(faults, command.Product.Name);
             _productValidationService.ValidateProductPrice(faults, command.Product.Price);
-            await _productValidationService.ValidateProductCode(faults, command.Product.Code);
+            await Task.CompletedTask;
         }
     }
 }

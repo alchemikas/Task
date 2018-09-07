@@ -11,5 +11,6 @@ namespace ProductUI.Models
         public decimal Price { get; set; }
         public string Photo { set; get; }
         public DateTime LastUpdated { get; set; }
+
     }
 }

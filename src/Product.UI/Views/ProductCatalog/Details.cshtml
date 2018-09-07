@@ -1,7 +1,7 @@
 ﻿@model ProductUI.Models.ProductViewModel
 
 @{
-    ViewData["Title"] = "ProductEditModel Details";
+    ViewData["Title"] = "Products Details";
 }
 
 <h2>Details</h2>
@@ -37,7 +37,10 @@
             @Html.DisplayNameFor(model => model.Photo)
         </dt>
         <dd>
-            <img src="data:image;base64,@Model.Photo" width="80" height="80" />
+            @if (!string.IsNullOrEmpty(Model.Photo))
+            {
+                <img src="data:image;base64,@Model.Photo" width="80" height="80"/>    
+            }
         </dd>
     </dl>
 </div>

@@ -36,9 +36,24 @@ namespace Product.Api.DomainCore.Handlers.Query
                     new Fault {Reason = "NotFoundResource", Message = $"Product with id:{query.ProductId} not found."}
                 });
             }
+
+            if (!string.IsNullOrEmpty(query.Code))
+            {
+                Models.Product product = await _productRepository.GetProductByCode(query.Code);
+                if (product != null)
+                {
+                    ViewProduct result = _mapper.Map<ViewProduct>(product);
+                    return new GetProductDetailsResponse { Product = result };
+                }
+                throw new NotFoundException(new List<Fault>()
+                {
+                    new Fault {Reason = "NotFoundResource", Message = $"Product with code:{query.ProductId} not found."}
+                });
+            }
+
             throw new ValidationException(new List<Fault>()
             {
-                new Fault {Reason = "NotValidId", Message = $"Product id:{query.ProductId} is not valid."}
+                new Fault {Reason = "NotValid", Message = $"Request is not valid."}
             });
         }
     }

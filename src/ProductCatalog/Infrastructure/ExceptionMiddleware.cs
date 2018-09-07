@@ -39,10 +39,18 @@ namespace Product.Api.Infrastructure
 
             if (exception is ClientError)
             {
-                ClientError clientError = exception as ClientError;
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                var responseContent = GetErrorsResponseContent(clientError.Faults);
-                return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
+                if (exception is ValidationException)
+                {
+                    ValidationException clientError = exception as ValidationException;
+                    context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    var responseContent = GetErrorsResponseContent(clientError.Faults);
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
+                }
+                if (exception is NotFoundException)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return Task.CompletedTask;
+                }
             }
 
             if (exception is ServerError)
