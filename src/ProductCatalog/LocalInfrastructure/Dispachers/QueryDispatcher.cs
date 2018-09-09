@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Product.Api.DomainCore.Handlers.Query;
 
-namespace Product.Api.Infrastructure.Dispachers
+namespace Product.Api.LocalInfrastructure.Dispachers
 {
     public interface IQueryDispatcher
     {

@@ -12,31 +12,47 @@ namespace Product.Api.DomainCore.Handlers.Command
 
     public class CreateProductHandler : BaseCommandHandler<CreateProductCommand>
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
+        private readonly IReadOnlyProductRepository _readOnlyProductRepository;
         private readonly IMapper _mapper;
-        private readonly IProductValidationService _productValidationService;
 
-        public CreateProductHandler(IProductRepository productRepository,
-            IMapper mapper,
-            IProductValidationService productValidationService)
+        public CreateProductHandler(IWriteOnlyProductRepository writeOnlyProductRepository,
+            IReadOnlyProductRepository readOnlyProductRepository,
+            IMapper mapper)
         {
-            _productRepository = productRepository;
+            _writeOnlyProductRepository = writeOnlyProductRepository;
+            _readOnlyProductRepository = readOnlyProductRepository;
             _mapper = mapper;
-            _productValidationService = productValidationService;
         }
 
         protected override async Task HandleCommand(CreateProductCommand command)
         {
             Models.Product domainModel = _mapper.Map<Models.Product>(command);
             domainModel.LastUpdated = DateTime.Now;
-            await _productRepository.SaveProduct(domainModel);
+            await _writeOnlyProductRepository.SaveProductAsync(domainModel);
+
+            command.ProductId = domainModel.Id;
         }
 
         protected override async Task Validate(CreateProductCommand command, List<Fault> faults)
         {
-            _productValidationService.ValidateProductName(faults, command.Product.Name);
-            _productValidationService.ValidateProductPrice(faults, command.Product.Price);
-            await _productValidationService.ValidateProductCode(faults, command.Product.Code);
+            ProductValidator.ValidateFile(faults, command.FileContent);
+            ProductValidator.ValidateProductName(faults, command.Name);
+            ProductValidator.ValidateProductPrice(faults, command.Price);
+            await ValidateProductCode(faults, command.Code);
+        }
+
+        public async Task ValidateProductCode(List<Fault> faults, string code)
+        {
+            if (string.IsNullOrEmpty(code)) faults.Add(new Fault() { Reason = nameof(code), Message = ProductValidator.CODE_IS_REQUIRED });
+            else
+            {
+                Models.Product product = await _readOnlyProductRepository.GetProductByCodeAsync(code).ConfigureAwait(false);
+                if (product != null)
+                {
+                    faults.Add(new Fault() { Reason = nameof(code), Message = ProductValidator.CODE_MUST_BE_UNIQUE });
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Product.Api.Contract.Responses
 {
-    public class GetProductDetailsResponse : Response
+    public class ProductDetailsResponse : Response
     {
         public ViewProduct Product { get; set; }
     }

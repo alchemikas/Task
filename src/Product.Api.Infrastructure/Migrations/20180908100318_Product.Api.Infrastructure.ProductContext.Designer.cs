@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Product.Api.Infrastructure;
 
-namespace Product.Api.Migrations
+namespace Product.Api.Infrastructure.Migrations
 {
     [DbContext(typeof(ProductContext))]
-    [Migration("20180906192517_Product.Api.Infrastructure.ProductContext")]
+    [Migration("20180908100318_Product.Api.Infrastructure.ProductContext")]
     partial class ProductApiInfrastructureProductContext
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Product.Api.Migrations
+namespace Product.Api.Infrastructure.Migrations
 {
     public partial class ProductApiInfrastructureProductContext : Migration
     {

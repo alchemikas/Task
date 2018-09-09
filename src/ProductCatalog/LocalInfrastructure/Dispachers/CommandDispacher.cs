@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 
-namespace Product.Api.Infrastructure.Dispachers
+namespace Product.Api.LocalInfrastructure.Dispachers
 {
-
     public interface ICommandDispacher
     {
         Task Execute<TCommand>(TCommand cmd);

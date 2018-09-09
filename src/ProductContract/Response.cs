@@ -7,6 +7,7 @@ namespace Product.Api.Contract
         public Response()
         {
             Errors = new List<Error>();
+            Warrnings = new List<Warrning>();
         }
 
         public List<Error> Errors { get; set; }

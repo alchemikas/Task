@@ -1,4 +1,4 @@
-﻿namespace Product.Api.DomainCore.Querys.Responses
+﻿namespace Product.Api.DomainCore.Queries.Responses
 {
     public class File
     {

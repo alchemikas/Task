@@ -13,50 +13,66 @@ namespace Product.Api.DomainCore.Handlers.Command
 {
     public class UpdateProductHandler : BaseCommandHandler<UpdateProductCommand>
     {
-        private readonly IProductRepository _productRepository;
-        private readonly IProductValidationService _productValidationService;
 
-        public UpdateProductHandler(IProductRepository productRepository,
-            IProductValidationService productValidationService)
+        private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
+        private readonly IReadOnlyProductRepository _readOnlyProductRepository;
+
+        public UpdateProductHandler(IWriteOnlyProductRepository writeOnlyProductRepository,
+            IReadOnlyProductRepository readOnlyProductRepository)
         {
-            _productRepository = productRepository;
-            _productValidationService = productValidationService;
+            _writeOnlyProductRepository = writeOnlyProductRepository;
+            _readOnlyProductRepository = readOnlyProductRepository;
         }
 
         protected override async Task HandleCommand(UpdateProductCommand command)
         {
-            Models.Product product = await _productRepository.GetProduct(command.Product.Id).ConfigureAwait(false);
+            Models.Product product = await _readOnlyProductRepository.GetProductAsync(command.ProductId).ConfigureAwait(false);
             if (product == null) throw new NotFoundException(new List<Fault>{new Fault{Reason = "ResourceNotFound", Message = "Resource not found."}});
 
-            if (product.Code != command.Product.Code)
+            bool wasCodeChanged = product.Code != command.Code;
+            if (wasCodeChanged)
             {
-                await _productValidationService.ValidateProductCode(_faults, command.Product.Code);
+                await ValidateProductCode(_faults, command.Code);
                 if (_faults.Any()) throw new ValidationException(_faults);
             }
 
             product.LastUpdated = DateTime.Now;
-            product.Name = command.Product.Name;
-            product.Code = command.Product.Code;
-            product.Price = command.Product.Price;
+            product.Name = command.Name;
+            product.Code = command.Code;
+            product.Price = command.Price;
 
-            if (command.Product.Image != null)
+            if (!string.IsNullOrEmpty(command.FileContent) && !string.IsNullOrEmpty(command.FileTitle))
             {
                 if(product.Image == null) product.Image = new File();
 
-                product.Image.Content = command.Product.Image.Content;
-                product.Image.ContentType = command.Product.Image.ContentType;
-                product.Image.Title = command.Product.Image.Title;
+                product.Image.Content = Convert.FromBase64String(command.FileContent);
+                product.Image.ContentType = command.FileContentType;
+                product.Image.Title = command.FileTitle;
             }
 
-            await _productRepository.Update().ConfigureAwait(false);
+            await _writeOnlyProductRepository.UpdateAsync().ConfigureAwait(false);
 
         }
 
         protected override async Task Validate(UpdateProductCommand command, List<Fault> faults)
         {
-            _productValidationService.ValidateProductName(faults, command.Product.Name);
-            _productValidationService.ValidateProductPrice(faults, command.Product.Price);
+            ProductValidator.ValidateFile(faults, command.FileContent);
+            ProductValidator.ValidateProductName(faults, command.Name);
+            ProductValidator.ValidateProductPrice(faults, command.Price);
             await Task.CompletedTask;
+        }
+
+        public async Task ValidateProductCode(List<Fault> faults, string code)
+        {
+            if (string.IsNullOrEmpty(code)) faults.Add(new Fault() {Reason = nameof(code), Message = ProductValidator.CODE_IS_REQUIRED });
+            else
+            {
+                Models.Product product = await _readOnlyProductRepository.GetProductByCodeAsync(code).ConfigureAwait(false);
+                if (product != null)
+                {
+                    faults.Add(new Fault() {Reason = nameof(code), Message = ProductValidator.CODE_MUST_BE_UNIQUE });
+                }
+            }
         }
     }
 }

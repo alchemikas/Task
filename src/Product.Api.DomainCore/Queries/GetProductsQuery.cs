@@ -1,4 +1,4 @@
-﻿namespace Product.Api.DomainCore.Querys
+﻿namespace Product.Api.DomainCore.Queries
 {
     // could be implemented paging
     public class GetProductsQuery

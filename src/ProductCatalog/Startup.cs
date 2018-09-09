@@ -11,15 +11,17 @@ using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Handlers.Command;
 using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 using Product.Api.DomainCore.Handlers.Query;
-using Product.Api.DomainCore.Querys;
+using Product.Api.DomainCore.Queries;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
 using Product.Api.Infrastructure;
-using Product.Api.Infrastructure.Dispachers;
 using Product.Api.Infrastructure.Repository;
 using Product.Api.Infrastructure.Services;
+using Product.Api.LocalInfrastructure;
 using Swashbuckle.AspNetCore.Swagger;
-using File = Product.Api.DomainCore.Querys.Responses.File;
+using Product.Api.LocalInfrastructure.Dispachers;
+using File = Product.Api.DomainCore.Queries.Responses.File;
+
 
 namespace Product.Api
 {
@@ -35,23 +37,21 @@ namespace Product.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var connection = @"Server=.;Database=SchoolDB;Trusted_Connection=True;ConnectRetryCount=0";
-            services.AddDbContext<ProductContext>(options => options.UseSqlServer(connection));
+            services.AddDbContext<ProductContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             //services
             services.AddScoped<IProductExportService, ProductExportService>();
-            services.AddScoped<IProductValidationService, ProductValidationService> ();
-            services.AddScoped<IFileValidationService, FileValidationService> ();
 
             //repo
-            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IWriteOnlyProductRepository, WriteOnlyProductRepository>();
+            services.AddScoped<IReadOnlyProductRepository, ReadOnlyProductRepository>();
             //commands
             services.AddScoped<ICommandHander<CreateProductCommand>, CreateProductHandler>();
             services.AddScoped<ICommandHander<DeleteProductCommand>, DeleteProductHandler>();
             services.AddScoped<ICommandHander<UpdateProductCommand>, UpdateProductHandler>();
 
             // query
-            services.AddScoped<IQueryHandler<GetProductQuery, GetProductDetailsResponse>, GetProductHandler>();
+            services.AddScoped<IQueryHandler<GetProductQuery, ProductDetailsResponse>, GetProductHandler>();
             services.AddScoped<IQueryHandler<GetProductsQuery, GetProductsResponse>, GetProductsHandler>();
             services.AddScoped<IQueryHandler<ExportProductQuery, File>, ExportProductsHandler>();
             services.AddScoped<IQueryHandler<GetProductQuery, bool>, DoesProductExistHandler>();

@@ -2,15 +2,16 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Product.Api.Contract;
 using Product.Api.Contract.Responses;
 using Product.Api.DomainCore;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
-using Product.Api.DomainCore.Querys;
-using Product.Api.DomainCore.Querys.Responses;
+using Product.Api.DomainCore.Queries;
+using Product.Api.DomainCore.Queries.Responses;
 using Product.Api.DomainCore.Services;
-using Product.Api.Infrastructure.Dispachers;
+using Product.Api.LocalInfrastructure.Dispachers;
 
 namespace Product.Api.Controllers
 {
@@ -23,20 +24,17 @@ namespace Product.Api.Controllers
         private readonly IQueryDispatcher _queryDispatcher;
         private readonly ICommandDispacher _commandDispacher;
         private readonly IMapper _mapper;
-        private readonly IFileValidationService _fileValidationService;
 
         private const string ACCEPT_XLS = "application/vnd.ms-excel.";
 
         public ProductController(
             IQueryDispatcher queryDispatcher,
             ICommandDispacher commandDispacher,
-            IMapper mapper,
-            IFileValidationService fileValidationService)
+            IMapper mapper)
         {
             _queryDispatcher = queryDispatcher;
             _commandDispacher = commandDispacher;
             _mapper = mapper;
-            _fileValidationService = fileValidationService;
         }
 
         [HttpGet("")]
@@ -58,11 +56,11 @@ namespace Product.Api.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "Get")]
         public async Task<IActionResult> Get(int id)
         {
             var query = new GetProductQuery { ProductId = id};
-            var response = await _queryDispatcher.Execute<GetProductQuery, GetProductDetailsResponse>(query).ConfigureAwait(false);
+            var response = await _queryDispatcher.Execute<GetProductQuery, ProductDetailsResponse>(query).ConfigureAwait(false);
 
             return Ok(response);
         }
@@ -71,7 +69,7 @@ namespace Product.Api.Controllers
         public async Task<IActionResult> GetByCode(string code)
         {
             var query = new GetProductQuery { Code = code };
-            var response = await _queryDispatcher.Execute<GetProductQuery, GetProductDetailsResponse>(query).ConfigureAwait(false);
+            var response = await _queryDispatcher.Execute<GetProductQuery, ProductDetailsResponse>(query).ConfigureAwait(false);
             if (response.Product != null)
             {
                 return Ok();
@@ -83,43 +81,41 @@ namespace Product.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Contract.CreateProduct product)
         {
-            ValidateFile(product.Photo);
-            var cmd = new CreateProductCommand
-            {
-                Product = _mapper.Map<DomainCore.Models.Product>(product)
-            };
+            var createCmd = _mapper.Map<CreateProductCommand>(product);
+           
+            await _commandDispacher.Execute(createCmd);
 
-            await _commandDispacher.Execute(cmd);
-            return NoContent();
+            var query = new GetProductQuery { ProductId = createCmd .ProductId };
+            var response = await _queryDispatcher.Execute<GetProductQuery, ProductDetailsResponse>(query).ConfigureAwait(false);
+
+            return CreatedAtRoute("Get", new {id = createCmd.ProductId}, response.Product);
         }
 
         
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] Contract.CreateProduct product)
         {
-            ValidateFile(product.Photo);
             var request = new GetProductQuery {ProductId = id};
             bool doesProductExist = await _queryDispatcher.Execute<GetProductQuery, bool>(request).ConfigureAwait(false);
 
-            var domainModel = _mapper.Map<DomainCore.Models.Product>(product);
             if (doesProductExist)
             {
-                var updateCmd = new UpdateProductCommand
-                {
-                    Product = domainModel
-                };
-                updateCmd.Product.Id = id;
+           
+                var updateCmd = _mapper.Map<UpdateProductCommand>(product);
+                updateCmd.ProductId = id;
 
                 await _commandDispacher.Execute(updateCmd).ConfigureAwait(false);
                 return Ok();
             }
 
-            CreateProductCommand createCmd = new CreateProductCommand
-            {
-                Product = domainModel
-            };
+            var createCmd = _mapper.Map<CreateProductCommand>(product);
+
             await _commandDispacher.Execute(createCmd).ConfigureAwait(false);
-            return NoContent();
+
+            var query = new GetProductQuery { ProductId = createCmd.ProductId };
+            var response = await _queryDispatcher.Execute<GetProductQuery, ProductDetailsResponse>(query).ConfigureAwait(false);
+
+            return CreatedAtRoute("Get", new { id = createCmd.ProductId }, response.Product);
         }
 
         
@@ -129,20 +125,6 @@ namespace Product.Api.Controllers
             var deleteRequest = new DeleteProductCommand { ProductId = id};
             await _commandDispacher.Execute(deleteRequest).ConfigureAwait(false);
             return NoContent();
-        }
-
-
-        //TODO think about moving this from here and more cleaner way to implement validation
-        private void ValidateFile(ImageFile file)
-        {
-            if (file != null)
-            {
-                if (!_fileValidationService.IsValidBase64String(file.Content))
-                {
-                    throw new ValidationException(new List<Fault>(){new Fault(){Reason = "InvalidFile", Message = "File base64string is invalid."}});
-                }
-            }
-            
         }
     }
 }

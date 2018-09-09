@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +9,7 @@ using Product.Api.DomainCore;
 using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
 
-namespace Product.Api.Infrastructure
+namespace Product.Api.LocalInfrastructure
 {
     public class ExceptionMiddleware
     {
@@ -41,15 +40,17 @@ namespace Product.Api.Infrastructure
             {
                 if (exception is ValidationException)
                 {
-                    ValidationException clientError = exception as ValidationException;
+                    ClientError clientError = exception as ClientError;
                     context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
                     var responseContent = GetErrorsResponseContent(clientError.Faults);
                     return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
                 }
                 if (exception is NotFoundException)
                 {
+                    ClientError clientError = exception as ClientError;
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Task.CompletedTask;
+                    var responseContent = GetErrorsResponseContent(clientError.Faults);
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
                 }
             }
 
@@ -61,6 +62,7 @@ namespace Product.Api.Infrastructure
                 return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
             }
 
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return context.Response.WriteAsync(JsonConvert.SerializeObject(new Error()
             {
                 Reason = "InternalServerError",

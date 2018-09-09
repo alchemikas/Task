@@ -1,6 +1,6 @@
 ﻿namespace Product.Api.Contract
 {
-    public class CreateProduct
+    public class CreateProduct : Response
     {
         public string Code { get; set; }
         public string Name { get; set; }

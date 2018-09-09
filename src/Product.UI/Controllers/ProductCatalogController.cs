@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -27,8 +28,8 @@ namespace ProductUI.Controllers
 
         public async Task<IActionResult> Index(string searchTerm = null)
         {
-            GetProductsResponse response = await _productApiClient.GetAll(searchTerm);
-            List<ProductViewModel> viewModel = _mapper.Map<List<ProductViewModel>>(response.Products);
+            ApiResponse<GetProductsResponse> apiResponse = await _productApiClient.GetAll(searchTerm);
+            List<ProductViewModel> viewModel = _mapper.Map<List<ProductViewModel>>(apiResponse.Response.Products);
 
             return View(viewModel);
         }
@@ -36,8 +37,8 @@ namespace ProductUI.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportFile()
         {
-            FileExport file = await _productApiClient.Export();
-            return  File(file.Bytes, file.ContentType, file.FileName);
+            ApiResponse<FileExport> apiResponse = await _productApiClient.Export();
+            return  File(apiResponse.Response.Bytes, apiResponse.Response.ContentType, apiResponse.Response.FileName);
         }
 
         public IActionResult Create()
@@ -62,17 +63,21 @@ namespace ProductUI.Controllers
                     MapImageFile(product.Image, apiModel.Photo);
                 }
 
-                Response response = product.Id == default(int)?
-                      await _productApiClient.Create(apiModel) 
-                    : await _productApiClient.Update(apiModel, product.Id);
 
-                if (response.Errors != null && response.Errors.Any())
+
+                ApiResponse<ViewProduct> apiResponse = product.Id != default(int) ?
+                    await _productApiClient.Update(apiModel, product.Id)
+                    : await _productApiClient.Create(apiModel);
+
+                if (apiResponse.HttpStatusCode != HttpStatusCode.OK && apiResponse.HttpStatusCode != HttpStatusCode.Created)
                 {
-                    foreach (var error in response.Errors)
+                    foreach (var error in apiResponse.Response.Errors)
                     {
                         ModelState.AddModelError(error.Reason, error.Message);
                     }
+                    return View(product);
                 }
+                
                 return RedirectToAction("Index");
             }
 
@@ -82,16 +87,16 @@ namespace ProductUI.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            GetProductDetailsResponse response = await _productApiClient.Get(id);
-            var editModel = _mapper.Map<ProductEditModel>(response.Product);
+            ApiResponse<ProductDetailsResponse> apiResponse = await _productApiClient.Get(id);
+            var editModel = _mapper.Map<ProductEditModel>(apiResponse.Response.Product);
 
             return View("Create", editModel);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            GetProductDetailsResponse response = await _productApiClient.Get(id);
-            ProductViewModel viewModel = _mapper.Map<ProductViewModel>(response.Product);
+            ApiResponse<ProductDetailsResponse> response = await _productApiClient.Get(id);
+            ProductViewModel viewModel = _mapper.Map<ProductViewModel>(response.Response.Product);
 
             return View(viewModel);
         }
@@ -120,12 +125,14 @@ namespace ProductUI.Controllers
                 bool doesCodeWasChanged = product.Code != product.CodeBeforeEdit;
                 if (doesCodeWasChanged)
                 {
-                    return await _productApiClient.IsCodeUnique(product.Code);
+                    ApiResponse apiResponse = await _productApiClient.IsCodeUnique(product.Code);
+                    return apiResponse.HttpStatusCode == HttpStatusCode.NotFound;
                 }
                 return true;
             }
 
-            return await _productApiClient.IsCodeUnique(product.Code);
+            ApiResponse response = await _productApiClient.IsCodeUnique(product.Code);
+            return response.HttpStatusCode == HttpStatusCode.NotFound;
         }
     }
 }

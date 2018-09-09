@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,6 +12,7 @@ namespace Product.Api.Client
     public class ProductApiClient : IProductApiClient
     {
         private readonly HttpClient _httpClient;
+        private const string API_NOT_ACCESSIBLE = "Product API not accessible.";
 
         public ProductApiClient()
         {
@@ -22,33 +22,47 @@ namespace Product.Api.Client
             };
         }
 
-        public async Task<GetProductsResponse> GetAll(string searchTerm)
+        public async Task<ApiResponse<GetProductsResponse>> GetAll(string searchTerm)
         {
             var search = string.IsNullOrEmpty(searchTerm) ? string.Empty : searchTerm;
+
             HttpClient httpClient = GetHttpClient();
             HttpResponseMessage response = await httpClient.GetAsync($"api/product?searchterm={search}");
-            return await HandleResponse<GetProductsResponse>(response, $"Failed to retrieve products from api.");
+
+            var apiResponse = new ApiResponse<GetProductsResponse>()
+            {
+                HttpStatusCode = response.StatusCode,
+                Response = await HandleResponse<GetProductsResponse>(response)
+            };
+            return apiResponse;
         }
 
-        public async Task<GetProductDetailsResponse> Get(int id)
+        public async Task<ApiResponse<ProductDetailsResponse>> Get(int id)
         {
             HttpClient httpClient = GetHttpClient();
             HttpResponseMessage response = await httpClient.GetAsync($"api/product/{id}");
-            return await HandleResponse<GetProductDetailsResponse>(response, $"Failed to retrieve product from api.");
+            var apiResponse = new ApiResponse<ProductDetailsResponse>()
+            {
+                HttpStatusCode = response.StatusCode,
+                Response = await HandleResponse<ProductDetailsResponse>(response)
+            };
+            return apiResponse;
         }
 
-        public async Task Delete(int id)
+        public async Task<ApiResponse<Response>> Delete(int id)
         {
             HttpClient httpClient = GetHttpClient();
             HttpResponseMessage response = await httpClient.DeleteAsync($"api/product/{id}");
-            if (response.IsSuccessStatusCode)
+            var apiResponse = new ApiResponse<Response>()
             {
-                return;
-            }
-            throw new Exception($"Failed to retrieve product from api.");
+                HttpStatusCode = response.StatusCode,
+                Response = await HandleResponse<Response>(response)
+            };
+
+            return apiResponse;
         }
 
-        public async Task<Response> Create(Contract.CreateProduct product)
+        public async Task<ApiResponse<ViewProduct>> Create(Contract.CreateProduct product)
         {
             HttpClient httpClient = GetHttpClient();
 
@@ -56,15 +70,16 @@ namespace Product.Api.Client
             content.Headers.ContentType.MediaType = "application/json";
 
             HttpResponseMessage response = await httpClient.PostAsync($"api/product", content);
-            if (response.IsSuccessStatusCode)
+            var apiResponse = new ApiResponse<ViewProduct>
             {
-                return new Response();
-            }
-            return await HandleResponse<Response>(response, $"Failed to create resource");
+                HttpStatusCode = response.StatusCode,
+                Response = await HandleResponse<ViewProduct>(response)
+            };
+            return apiResponse;
         }
     
 
-        public async Task<Response> Update(Contract.CreateProduct product, int id)
+        public async Task<ApiResponse<ViewProduct>> Update(Contract.CreateProduct product, int id)
         {
             HttpClient httpClient = GetHttpClient();
             
@@ -72,40 +87,43 @@ namespace Product.Api.Client
             content.Headers.ContentType.MediaType = "application/json";
 
             HttpResponseMessage response = await httpClient.PutAsync($"api/product/{id}", content);
-            if (response.IsSuccessStatusCode)
+            var apiRresponse = new ApiResponse<ViewProduct>()
             {
-                return new Response();
-            }
-            return await HandleResponse<Response>(response, $"Failed to create resource");
+                 HttpStatusCode = response.StatusCode,
+                 Response = await HandleResponse<ViewProduct>(response)
+            };
+           
+            return apiRresponse;
         }
 
-        public async Task<FileExport> Export()
+        public async Task<ApiResponse<FileExport>> Export()
         {
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.ms-excel."));
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/product");
+            HttpResponseMessage response = await _httpClient.GetAsync("api/product");
             if (response.IsSuccessStatusCode)
             {
-                return new FileExport
+                return new ApiResponse<FileExport>
                 {
-                    Bytes = await response.Content.ReadAsByteArrayAsync(),
-                    FileName = response.Content.Headers.ContentDisposition.FileNameStar,
-                    ContentType = response.Content.Headers.ContentType.MediaType
+                    Response = new FileExport
+                    {
+                        Bytes = await response.Content.ReadAsByteArrayAsync(),
+                        FileName = response.Content.Headers.ContentDisposition.FileNameStar,
+                        ContentType = response.Content.Headers.ContentType.MediaType
+                    },
+                   HttpStatusCode = response.StatusCode
                 };
             }
-            throw new Exception("Failed to download file.");
+            throw new Exception(API_NOT_ACCESSIBLE);
         }
 
-        public async Task<bool> IsCodeUnique(string code)
+        public async Task<ApiResponse> IsCodeUnique(string code)
         {
             HttpClient httpClient = GetHttpClient();
             var requestMessage= new HttpRequestMessage(HttpMethod.Head, $"api/product/code/{code}");
             HttpResponseMessage response = await httpClient.SendAsync(requestMessage);
 
-            if (response.StatusCode == HttpStatusCode.OK) return false;
-            if (response.StatusCode == HttpStatusCode.NotFound) return true;
-
-            throw new Exception("Failed to check code unique.");
+            return new ApiResponse(){HttpStatusCode = response.StatusCode };
         }
 
 
@@ -116,13 +134,13 @@ namespace Product.Api.Client
             return _httpClient;
         }
 
-        private async Task<T> HandleResponse<T>(HttpResponseMessage response, string errorMessage) 
+        private async Task<T> HandleResponse<T>(HttpResponseMessage response) 
         {
             if (response.StatusCode != HttpStatusCode.InternalServerError)
             {
                 return await response.Content.DeserializeResponse<T>();
             }
-            throw new Exception(errorMessage);
+            throw new Exception(API_NOT_ACCESSIBLE);
         }
     }
 

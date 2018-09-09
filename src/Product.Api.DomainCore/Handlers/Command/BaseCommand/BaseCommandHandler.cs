@@ -5,9 +5,6 @@ using Product.Api.DomainCore.Exceptions.ClientErrors;
 
 namespace Product.Api.DomainCore.Handlers.Command.BaseCommand
 {
-
-    // Todo could be added restriction for commands that all commands inherit from single class
-    // Todo wrap Execute into transaction if more complex operration will be apllyed
     public abstract class BaseCommandHandler<TCommand> : ICommandHander<TCommand>
     {
         protected List<Fault> _faults;

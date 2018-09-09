@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
+using Product.Api.DomainCore.Exceptions.ClientErrors;
 using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 using Product.Api.DomainCore.Repository;
 
@@ -10,22 +11,25 @@ namespace Product.Api.DomainCore.Handlers.Command
     public class DeleteProductHandler : BaseCommandHandler<DeleteProductCommand>
     {
         private const string PRODUCT_ID_IS_NOT_PROVIDED = "Product id is not provided.";
-        private readonly IProductRepository _productRepository;
+        private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
+        private readonly IReadOnlyProductRepository _readOnlyProductRepository;
 
-        public DeleteProductHandler(IProductRepository productRepository)
+        public DeleteProductHandler(IWriteOnlyProductRepository writeOnlyProductRepository,
+            IReadOnlyProductRepository readOnlyProductRepository)
         {
-            _productRepository = productRepository;
+            _writeOnlyProductRepository = writeOnlyProductRepository;
+            _readOnlyProductRepository = readOnlyProductRepository;
         }
 
         protected override async Task HandleCommand(DeleteProductCommand command)
         {
-            Models.Product product = await _productRepository.GetProduct(command.ProductId).ConfigureAwait(false);
+            Models.Product product = await _readOnlyProductRepository.GetProductAsync(command.ProductId).ConfigureAwait(false);
             if (product == null)
             {
-                throw new Exception("Not Found");
+                throw new NotFoundException(new List<Fault>(){new Fault(){Reason = "NotFound", Message = "Resource not found."}});
             }
 
-            await _productRepository.Delete(product).ConfigureAwait(false);
+            await _writeOnlyProductRepository.DeleteAsync(product).ConfigureAwait(false);
         }
 
         protected override Task Validate(DeleteProductCommand command, List<Fault> faults)

@@ -1,22 +1,22 @@
 ﻿using System.Threading.Tasks;
-using Product.Api.DomainCore.Querys;
+using Product.Api.DomainCore.Queries;
 using Product.Api.DomainCore.Repository;
 
 namespace Product.Api.DomainCore.Handlers.Query
 {
     public class DoesProductExistHandler : IQueryHandler<GetProductQuery, bool>
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IReadOnlyProductRepository _readOnlyProductRepository;
 
-        public DoesProductExistHandler(IProductRepository productRepository)
+        public DoesProductExistHandler(IReadOnlyProductRepository readOnlyProductRepository)
         {
-            _productRepository = productRepository;
+            _readOnlyProductRepository = readOnlyProductRepository;
         }
 
         public async Task<bool> Handle(GetProductQuery query)
         {
             if (query.ProductId == default(int)) return false;
-            return await _productRepository.DoesProductExist(query.ProductId);
+            return await _readOnlyProductRepository.DoesProductExistAsync(query.ProductId);
         }
     }
 }

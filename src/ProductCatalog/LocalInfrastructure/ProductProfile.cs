@@ -4,7 +4,7 @@ using Product.Api.Contract;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Models;
 
-namespace Product.Api.Infrastructure
+namespace Product.Api.LocalInfrastructure
 {
     public class ProductProfile : Profile
     {
@@ -27,6 +27,15 @@ namespace Product.Api.Infrastructure
                 .ForMember(dest => dest.ContentType, opt => opt.MapFrom(src => src.ContentType))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title));
 
+            CreateMap<Contract.CreateProduct, UpdateProductCommand>()
+                .ForMember(dest => dest.FileContent, opt => opt.MapFrom(src => src.Photo.Content))
+                .ForMember(dest => dest.FileContentType, opt => opt.MapFrom(src => src.Photo.ContentType))
+                .ForMember(dest => dest.FileTitle, opt => opt.MapFrom(src => src.Photo.Title));
+
+            CreateMap<Contract.CreateProduct, CreateProductCommand>()
+                .ForMember(dest => dest.FileContent, opt => opt.MapFrom(src => src.Photo.Content))
+                .ForMember(dest => dest.FileContentType, opt => opt.MapFrom(src => src.Photo.ContentType))
+                .ForMember(dest => dest.FileTitle, opt => opt.MapFrom(src => src.Photo.Title));
 
             CreateMap<DomainCore.Models.Product, Contract.CreateProduct>()
             .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Image));
@@ -35,10 +44,20 @@ namespace Product.Api.Infrastructure
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Photo));
 
             CreateMap<CreateProductCommand, DomainCore.Models.Product>()
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(x => x.Product.Price))
-                .ForMember(dest => dest.Code, opt => opt.MapFrom(x => x.Product.Code))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(x => x.Product.Name))
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(x => x.Product.Image));
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(x => x.Price))
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(x => x.Code))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(x => x.Name))
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(x => new File
+                {
+                    Content = Convert.FromBase64String(x.FileContent),
+                    ContentType = x.FileContentType,
+                    Title = x.FileTitle
+                }));
+
+//            CreateMap<CreateProductCommand, DomainCore.Models.File>()
+//                .ForMember(dest => dest.Content, opt => opt.MapFrom(x => Convert.FromBase64String(x.FileContent)))
+//                .ForMember(dest => dest.ContentType, opt => opt.MapFrom(x => x.FileContentType))
+//                .ForMember(dest => dest.Title, opt => opt.MapFrom(x => x.FileTitle));
 
             CreateMap<ImageFile, File>()
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(x => Convert.FromBase64String(x.Content)))
