@@ -1,4 +1,5 @@
 Adjust sql connection in appsettings in API and infrastructure project
+API should be hosted on 8000 port (http://localhost:8000)
 
 Before you start the project DB migration should be applied 
 select infrastructure project in packakeManager console

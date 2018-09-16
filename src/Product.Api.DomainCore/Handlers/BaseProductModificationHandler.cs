@@ -17,7 +17,7 @@ namespace Product.Api.DomainCore.Handlers
         protected abstract override Task Validate(T command, List<Fault> faults);
 
 
-        protected virtual void ValidateProductModification(T command, List<Fault> faults)
+        protected void ValidateProductModification(T command, List<Fault> faults)
         {
             ImageFileValidator.ValidateFileContent(faults, command.FileContent);
             ImageFileValidator.ValidateImageExtension(faults, command.FileTitle);
