@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
-using Product.Api.DomainCore.Handlers.BaseHandler;
 using Product.Api.DomainCore.Handlers.Validators;
 using Product.Api.DomainCore.Models;
 using Product.Api.DomainCore.Repository;
@@ -13,10 +12,8 @@ using Product.Api.DomainCore.Services;
 
 namespace Product.Api.DomainCore.Handlers
 {
-    public class UpdateProductHandler : BaseCommandHandler<UpdateProductCommand>
+    public class UpdateProductHandler : BaseProductModificationHandler<UpdateProductCommand>
     {
-        private const int ThumbnailImageHeight = 50;
-        private const int ThumbnailImageWidth = 50;
         private const string PRODUCT_NOT_FOUND = "Resource not found.";
 
         private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
@@ -85,12 +82,7 @@ namespace Product.Api.DomainCore.Handlers
 
         protected override async Task Validate(UpdateProductCommand command, List<Fault> faults)
         {
-            ImageFileValidator.ValidateFileContent(faults, command.FileContent);
-            ImageFileValidator.ValidateImageExtension(faults, command.FileTitle);
-            ImageFileValidator.ValidateImageFileTitle(faults, command.FileTitle, command.FileContent);
-
-            ProductValidator.ValidateProductName(faults, command.Name);
-            ProductValidator.ValidateProductPrice(faults, command.Price);
+            ValidateProductModification(command, faults);
             await Task.CompletedTask;
         }
     }

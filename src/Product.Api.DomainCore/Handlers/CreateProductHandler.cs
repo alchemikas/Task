@@ -8,16 +8,12 @@ using Product.Api.DomainCore.Handlers.Validators;
 using Product.Api.DomainCore.Models;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
-using Product.Api.DomainCore.Handlers.BaseHandler;
 
 namespace Product.Api.DomainCore.Handlers
 {
 
-    public class CreateProductHandler : BaseCommandHandler<CreateProductCommand>
+    public class CreateProductHandler : BaseProductModificationHandler<CreateProductCommand>
     {
-        private const int ThumbnailImageHeight = 50;
-        private const int ThumbnailImageWidth = 50;
-
         private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
         private readonly IReadOnlyProductRepository _readOnlyProductRepository;
         private readonly IImageFileResizeService _imageFileResizeService;
@@ -56,12 +52,7 @@ namespace Product.Api.DomainCore.Handlers
 
         protected override async Task Validate(CreateProductCommand command, List<Fault> faults)
         {
-            ImageFileValidator.ValidateImageFileTitle(faults, command.FileTitle, command.FileContent);
-            ImageFileValidator.ValidateImageExtension(faults, command.FileTitle);
-            ImageFileValidator.ValidateFileContent(faults, command.FileContent);
-
-            ProductValidator.ValidateProductName(faults, command.Name);
-            ProductValidator.ValidateProductPrice(faults, command.Price);
+            ValidateProductModification(command, faults);
 
             var product = await _readOnlyProductRepository.GetProductByCodeAsync(command.Code).ConfigureAwait(false);
             ProductValidator.ValidateProductCode(faults, product, command.Code);
