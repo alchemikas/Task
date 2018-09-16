@@ -1,6 +1,5 @@
-﻿namespace Product.Api.DomainCore.Queries
+﻿namespace Product.Api.ReadModel.Queries
 {
-    // could be implemented paging
     public class GetProductsQuery
     {
         public string SearchTerm { get; set; }

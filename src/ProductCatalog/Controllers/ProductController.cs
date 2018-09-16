@@ -1,23 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Product.Api.Contract;
 using Product.Api.Contract.Responses;
-using Product.Api.DomainCore;
 using Product.Api.DomainCore.Commands;
-using Product.Api.DomainCore.Exceptions.ClientErrors;
-using Product.Api.DomainCore.Queries;
-using Product.Api.DomainCore.Queries.Responses;
-using Product.Api.DomainCore.Services;
 using Product.Api.LocalInfrastructure.Dispachers;
+using Product.Api.ReadModel.Queries;
+using Product.Api.ReadModel.Queries.Responses;
 
 namespace Product.Api.Controllers
 {
 
     [Route("api/[controller]")]
-    [Produces("application/json", "application/vnd.ms-excel.")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -38,7 +31,8 @@ namespace Product.Api.Controllers
         }
 
         [HttpGet("")]
-        [Consumes("application/json", "application/vnd.ms-excel.")]
+        [Produces("application/vnd.ms-excel.", "application/json")]
+        [Consumes("application/json")]
         public async Task<IActionResult> Get([FromQuery] string searchTerm)
         {
             HttpContext.Request.Headers.TryGetValue("Accept", out var acceptHeader);
@@ -55,6 +49,7 @@ namespace Product.Api.Controllers
 
             return Ok(response);
         }
+
 
         [HttpGet("{id}", Name = "Get")]
         public async Task<IActionResult> Get(int id)
@@ -79,6 +74,7 @@ namespace Product.Api.Controllers
 
 
         [HttpPost]
+        [Consumes("application/json")]
         public async Task<IActionResult> Post([FromBody] Contract.CreateProduct product)
         {
             var createCmd = _mapper.Map<CreateProductCommand>(product);
@@ -93,6 +89,7 @@ namespace Product.Api.Controllers
 
         
         [HttpPut("{id}")]
+        [Consumes("application/json")]
         public async Task<IActionResult> Put(int id, [FromBody] Contract.CreateProduct product)
         {
             var request = new GetProductQuery {ProductId = id};

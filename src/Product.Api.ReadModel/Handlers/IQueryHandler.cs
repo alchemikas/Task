@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Product.Api.DomainCore.Handlers.Query
+namespace Product.Api.ReadModel.Handlers
 {
     public interface IQueryHandler<in TQuery, TResponse>
     {

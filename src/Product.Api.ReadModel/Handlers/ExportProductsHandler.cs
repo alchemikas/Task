@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Product.Api.DomainCore.Queries;
-using Product.Api.DomainCore.Queries.Responses;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
+using Product.Api.ReadModel.Queries;
+using Product.Api.ReadModel.Queries.Responses;
 
-namespace Product.Api.DomainCore.Handlers.Query
+namespace Product.Api.ReadModel.Handlers
 {
     public class ExportProductsHandler : IQueryHandler<ExportProductQuery, File>
     {
@@ -22,7 +22,7 @@ namespace Product.Api.DomainCore.Handlers.Query
 
         public async Task<File> Handle(ExportProductQuery query)
         {
-            List<Models.Product> products = await _readOnlyProductRepository.GetProductsAsync();
+            List<DomainCore.Models.Product> products = await _readOnlyProductRepository.GetProductsAsync();
             byte[] fileBytes = _productExportService.Export(products);
 
             return new File {Bytes = fileBytes, Name = $"Products_{DateTime.UtcNow}.xls"};

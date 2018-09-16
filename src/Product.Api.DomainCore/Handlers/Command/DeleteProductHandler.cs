@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
+using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
 using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 using Product.Api.DomainCore.Repository;
@@ -11,6 +12,8 @@ namespace Product.Api.DomainCore.Handlers.Command
     public class DeleteProductHandler : BaseCommandHandler<DeleteProductCommand>
     {
         private const string PRODUCT_ID_IS_NOT_PROVIDED = "Product id is not provided.";
+        private const string PRODUCT_NOT_FOUND = "Resource not found.";
+
         private readonly IWriteOnlyProductRepository _writeOnlyProductRepository;
         private readonly IReadOnlyProductRepository _readOnlyProductRepository;
 
@@ -26,7 +29,7 @@ namespace Product.Api.DomainCore.Handlers.Command
             Models.Product product = await _readOnlyProductRepository.GetProductAsync(command.ProductId).ConfigureAwait(false);
             if (product == null)
             {
-                throw new NotFoundException(new List<Fault>(){new Fault(){Reason = "NotFound", Message = "Resource not found."}});
+                throw new NotFoundException(new Fault {Reason = "ResourceNotFound", Message = PRODUCT_NOT_FOUND });
             }
 
             await _writeOnlyProductRepository.DeleteAsync(product).ConfigureAwait(false);
@@ -42,11 +45,8 @@ namespace Product.Api.DomainCore.Handlers.Command
         {
             if (id == default(int))
             {
-                faults.Add(new Fault(){ Reason = nameof(id), Message = PRODUCT_ID_IS_NOT_PROVIDED });
+                faults.Add(new Fault { Reason = nameof(id), Message = PRODUCT_ID_IS_NOT_PROVIDED });
             }
         }
-
-
-      
     }
 }

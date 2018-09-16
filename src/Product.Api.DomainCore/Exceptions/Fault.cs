@@ -1,4 +1,4 @@
-﻿namespace Product.Api.DomainCore
+﻿namespace Product.Api.DomainCore.Exceptions
 {
     public class Fault
     {

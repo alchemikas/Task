@@ -20,9 +20,14 @@ namespace Product.Api.LocalInfrastructure
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
-                .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Image));
+                .ForMember(dest => dest.Photo, opt => opt.Ignore());
 
-            CreateMap<DomainCore.Models.File, Contract.ImageFile>()
+            CreateMap<DomainCore.Models.Image, Contract.ImageFile>()
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => Convert.ToBase64String(src.Content)))
+                .ForMember(dest => dest.ContentType, opt => opt.MapFrom(src => src.ContentType))
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title));
+
+            CreateMap<DomainCore.Models.ImageThumbnail, Contract.ImageFile>()
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => Convert.ToBase64String(src.Content)))
                 .ForMember(dest => dest.ContentType, opt => opt.MapFrom(src => src.ContentType))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title));
@@ -47,24 +52,17 @@ namespace Product.Api.LocalInfrastructure
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(x => x.Price))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(x => x.Code))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(x => x.Name))
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(x => new File
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(x => new Image
                 {
                     Content = Convert.FromBase64String(x.FileContent),
                     ContentType = x.FileContentType,
                     Title = x.FileTitle
                 }));
 
-//            CreateMap<CreateProductCommand, DomainCore.Models.File>()
-//                .ForMember(dest => dest.Content, opt => opt.MapFrom(x => Convert.FromBase64String(x.FileContent)))
-//                .ForMember(dest => dest.ContentType, opt => opt.MapFrom(x => x.FileContentType))
-//                .ForMember(dest => dest.Title, opt => opt.MapFrom(x => x.FileTitle));
-
-            CreateMap<ImageFile, File>()
+            CreateMap<ImageFile, Image>()
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(x => Convert.FromBase64String(x.Content)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductId, opt => opt.Ignore());
-
-
         }
     }
 }

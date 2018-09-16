@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Product.Api.DomainCore.Handlers.Query;
+using Product.Api.ReadModel.Handlers;
 
 namespace Product.Api.LocalInfrastructure.Dispachers
 {

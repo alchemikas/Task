@@ -29,12 +29,12 @@ namespace Product.Api.Infrastructure.Repository
 
         public async Task<DomainCore.Models.Product> GetProductAsync(int id)
         {
-            return await _productContext.Product.Include(x => x.Image).FirstOrDefaultAsync(x => x.Id == id);
+            return await _productContext.Product.Include(x => x.Image).Include(x => x.ImageThumbnail).FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<List<DomainCore.Models.Product>> GetProductsAsync(string searchTerm)
         {
-            var query = _productContext.Product.Include(x => x.Image);
+            var query = _productContext.Product.Include(x => x.ImageThumbnail);
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 return await query.Where(x => x.Code.Contains(searchTerm) || x.Name.Contains(searchTerm)).ToListAsync();

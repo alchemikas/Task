@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Product.Api.DomainCore.Models
 {
-    public class File
+    public class ImageThumbnail
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

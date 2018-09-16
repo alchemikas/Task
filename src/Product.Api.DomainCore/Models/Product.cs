@@ -13,6 +13,7 @@ namespace Product.Api.DomainCore.Models
         public string Name { get; set; }
         public decimal Price { get; set; }
         public DateTime LastUpdated { get; set; }
-        public File Image { get; set; }
+        public virtual Image Image { get; set; }
+        public virtual ImageThumbnail ImageThumbnail { get; set; }
     }
 }

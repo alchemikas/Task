@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using Product.Api.DomainCore.Queries;
 using Product.Api.DomainCore.Repository;
+using Product.Api.ReadModel.Queries;
 
-namespace Product.Api.DomainCore.Handlers.Query
+namespace Product.Api.ReadModel.Handlers
 {
     public class DoesProductExistHandler : IQueryHandler<GetProductQuery, bool>
     {

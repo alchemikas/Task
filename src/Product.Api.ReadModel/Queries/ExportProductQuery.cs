@@ -1,4 +1,4 @@
-﻿namespace Product.Api.DomainCore.Queries
+﻿namespace Product.Api.ReadModel.Queries
 {
     public class ExportProductQuery
     {

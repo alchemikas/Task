@@ -18,7 +18,7 @@ namespace Product.Api.Client
         {
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri("http://localhost:59266")
+                BaseAddress = new Uri("http://localhost:8000")
             };
         }
 

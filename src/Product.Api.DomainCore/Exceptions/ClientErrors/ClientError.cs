@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Net;
 
 namespace Product.Api.DomainCore.Exceptions.ClientErrors
 {
-    public class ClientError : Exception
+    public class ClientError : ApiError
     {
-        public List<Fault> Faults;
-
-        public ClientError(List<Fault> faults)
+        public ClientError(Fault fault, HttpStatusCode statusCode) : base(fault, statusCode)
         {
-            Faults = faults;
+        }
+
+        public ClientError(HttpStatusCode statusCode) : base(statusCode)
+        {
         }
     }
 }

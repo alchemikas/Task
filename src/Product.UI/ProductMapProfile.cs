@@ -34,7 +34,7 @@ namespace ProductUI
             CreateMap<IFormFile, ImageFile>()
                 .ForMember(dest => dest.Content, opt => opt.Ignore())
                 .ForMember(dest => dest.ContentType, opt => opt.MapFrom(src => src.ContentType))
-                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Name));
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.FileName));
 
             CreateMap<ViewProduct, ProductEditModel>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))

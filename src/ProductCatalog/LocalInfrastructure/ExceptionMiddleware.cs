@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using Product.Api.Contract;
 using Product.Api.DomainCore;
 using Product.Api.DomainCore.Exceptions;
-using Product.Api.DomainCore.Exceptions.ClientErrors;
 
 namespace Product.Api.LocalInfrastructure
 {
@@ -36,29 +35,10 @@ namespace Product.Api.LocalInfrastructure
         {
             context.Response.ContentType = "application/json";
 
-            if (exception is ClientError)
+            if (exception is ApiError clientError)
             {
-                if (exception is ValidationException)
-                {
-                    ClientError clientError = exception as ClientError;
-                    context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
-                    var responseContent = GetErrorsResponseContent(clientError.Faults);
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
-                }
-                if (exception is NotFoundException)
-                {
-                    ClientError clientError = exception as ClientError;
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    var responseContent = GetErrorsResponseContent(clientError.Faults);
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
-                }
-            }
-
-            if (exception is ServerError)
-            {
-                ServerError clientError = exception as ServerError;
-                context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
-                var responseContent = GetErrorsResponseContent(clientError.Faults);
+                context.Response.StatusCode = (int)clientError.StatusCode;
+                Response responseContent = GetErrorsResponseContent(clientError.GetErrors());
                 return context.Response.WriteAsync(JsonConvert.SerializeObject(responseContent));
             }
 
@@ -70,7 +50,7 @@ namespace Product.Api.LocalInfrastructure
             }));
         }
 
-        private static Response GetErrorsResponseContent(List<Fault> faults)
+        private static Response GetErrorsResponseContent(IReadOnlyCollection<Fault> faults)
         {
             var response = new Response();
             foreach (var fault in faults)
