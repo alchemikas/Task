@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Product.Api.DomainCore.Exceptions;
 
-namespace Product.Api.DomainCore.Handlers
+namespace Product.Api.DomainCore.Handlers.Validators
 {
     public class ProductValidator
     {

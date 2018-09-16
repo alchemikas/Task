@@ -36,11 +36,11 @@ namespace Product.Api.Infrastructure.Services
                 worksheet.Cells[row, 3].Value = products[i].Price;
                 worksheet.Cells[row, 4].Value = products[i].LastUpdated.ToString("yyyy-MM-dd H:mm:ss");
 
-                if (products[i].Image != null)
+                if (products[i].ImageThumbnail != null)
                 {
 
-                    var picture = worksheet.Drawings.AddPicture($"{products[i].Image.Title}_{DateTime.Now.Millisecond}",
-                        Image.FromStream(new MemoryStream(products[i].Image.Content)));
+                    var picture = worksheet.Drawings.AddPicture($"{products[i].ImageThumbnail.Title}_{DateTime.Now.Millisecond}",
+                        Image.FromStream(new MemoryStream(products[i].ImageThumbnail.Content)));
                     picture.From.Column = 4;
                     picture.From.Row = row - 1;
                     picture.SetSize(80, 80);

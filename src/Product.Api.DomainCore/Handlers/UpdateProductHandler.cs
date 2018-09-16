@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
-using Product.Api.DomainCore.Handlers.Command.BaseCommand;
+using Product.Api.DomainCore.Handlers.BaseHandler;
+using Product.Api.DomainCore.Handlers.Validators;
 using Product.Api.DomainCore.Models;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
 
-namespace Product.Api.DomainCore.Handlers.Command
+namespace Product.Api.DomainCore.Handlers
 {
     public class UpdateProductHandler : BaseCommandHandler<UpdateProductCommand>
     {

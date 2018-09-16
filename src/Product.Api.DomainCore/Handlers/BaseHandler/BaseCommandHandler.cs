@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
 
-namespace Product.Api.DomainCore.Handlers.Command.BaseCommand
+namespace Product.Api.DomainCore.Handlers.BaseHandler
 {
     public abstract class BaseCommandHandler<TCommand> : ICommandHander<TCommand>
     {

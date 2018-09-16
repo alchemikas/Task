@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions;
 using Product.Api.DomainCore.Exceptions.ClientErrors;
-using Product.Api.DomainCore.Handlers.Command.BaseCommand;
 using Product.Api.DomainCore.Repository;
+using Product.Api.DomainCore.Handlers.BaseHandler;
 
-namespace Product.Api.DomainCore.Handlers.Command
+namespace Product.Api.DomainCore.Handlers
 {
     public class DeleteProductHandler : BaseCommandHandler<DeleteProductCommand>
     {

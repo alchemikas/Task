@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Product.Api.DomainCore.Handlers.Command.BaseCommand;
+using Product.Api.DomainCore.Handlers.BaseHandler;
 
 namespace Product.Api.LocalInfrastructure.Dispachers
 {

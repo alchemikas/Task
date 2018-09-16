@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Product.Api.DomainCore.Commands;
 using Product.Api.DomainCore.Exceptions;
-using Product.Api.DomainCore.Handlers.Command.BaseCommand;
+using Product.Api.DomainCore.Handlers.Validators;
 using Product.Api.DomainCore.Models;
 using Product.Api.DomainCore.Repository;
 using Product.Api.DomainCore.Services;
+using Product.Api.DomainCore.Handlers.BaseHandler;
 
-namespace Product.Api.DomainCore.Handlers.Command
+namespace Product.Api.DomainCore.Handlers
 {
 
     public class CreateProductHandler : BaseCommandHandler<CreateProductCommand>
